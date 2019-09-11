@@ -1,24 +1,74 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import SimplePeer from "simple-peer";
+
+// var channel = client.channels.get('room');
+
+// channel.subscribe(function(message) {
+//   message.name // 'greeting'
+//   message.data // 'Hello World!'
+// });
 
 function App() {
+
+  const client = React.useRef(null);
+  const channel = React.useRef(null);
+
+  const peer = React.useRef(null);
+
+  React.useEffect(() => {
+    client.current = new window.Ably.Realtime("h6vEZA.9BEKAw:XGAq6Hym9lcxyxha");
+
+    client.current.connection.on('connected', function () {
+      console.info("***CONNECTED***");
+    });
+
+    client.current.connection.on('failed', function () {
+      console.warn("***FAILED TO CONNECTED***");
+    });
+
+    channel.current = client.current.channels.get('room');
+    channel.current.subscribe((message) => {
+      console.log(">>>", message);
+    })
+
+  }, [])
+
+  React.useEffect(() => {
+    peer.current = SimplePeer({
+      initiator: window.location.hash === '#1',
+      trickle: false
+    });
+
+    peer.current.on('error', err => console.log('error', err))
+
+    peer.current.on('signal', data => {
+      console.log('SIGNAL', JSON.stringify(data))
+      document.querySelector('#outgoing').textContent = JSON.stringify(data)
+    })
+
+    document.querySelector('form').addEventListener('submit', ev => {
+      ev.preventDefault()
+      peer.current.signal(JSON.parse(document.querySelector('#incoming').value))
+    })
+
+    peer.current.on('connect', () => {
+      console.log('CONNECT')
+      peer.current.send('whatever' + Math.random())
+    })
+
+    peer.current.on('data', data => {
+      console.log('data: ' + data)
+    })
+
+  }, [])
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <form>
+        <textarea id="incoming"></textarea>
+        <button type="submit">submit</button>
+      </form>
+      <pre id="outgoing"></pre>
     </div>
   );
 }
