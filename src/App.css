@@ -38,13 +38,13 @@ video {
   z-index: 10;
 }
 
-.imageFrame > video.remote {
+.imageFrame > video.guest {
   position: absolute;
   left: 148px;
   top: 175px;
 }
 
-.imageFrame > video.self {
+.imageFrame > video.host {
   position: absolute;
   left: 449px;
   top: 175px;

@@ -13,27 +13,16 @@ function Indicator({ isConnected }) {
     return <div className={cn("indicator", { connected: isConnected })} />
 }
 
-export default function Room() {
+export default function Room({ stream }) {
     const [members, setMembers] = React.useState([])
     const realtime = React.useRef(null)
     const room = React.useRef(null);
     const connection = React.useRef(null);
     const [isConnected, setIsConnected] = React.useState(false);
-    const [stream, setStream] = React.useState(null);
-
-    function getStream() {
-        navigator.mediaDevices.getUserMedia({ audio: false, video: true }).then(stream => {
-            setStream(stream);
-        });
-    }
-
-    React.useEffect(() => {
-        getStream()
-    }, [])
 
     React.useEffect(() => {
         if (stream) {
-            var video = document.querySelector('video.self')
+            var video = document.querySelector('video.host')
             if ('srcObject' in video) {
                 video.srcObject = stream
             } else {
@@ -149,8 +138,8 @@ export default function Room() {
             <Indicator isConnected={isConnected} />
             <div className="imageFrame">
                 <img src={japanFramePng} alt="" />
-                <video className="remote" />
-                <video className="self" />
+                <video className="guest" />
+                <video className="host" />
             </div>
         </div>
     )

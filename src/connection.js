@@ -71,7 +71,7 @@ export default class Connection {
     _onStream(stream) {
         console.info('<<<p2p: stream: ' + stream)
         // got remote video stream, now let's show it in a video tag
-        var video = document.querySelector('video.remote')
+        var video = document.querySelector('video.guest')
 
         if ('srcObject' in video) {
             video.srcObject = stream
