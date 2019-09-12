@@ -108,7 +108,7 @@ export default function Room() {
                 console.warn("Don't have an active connection to add stream to")
             }
         }
-        navigator.getUserMedia({ video: true, audio: false }, gotMedia, () => { })
+        window.navigator.getUserMedia({ video: true, audio: false }, gotMedia, () => { })
     }, [isConnected])
 
     const list = []
