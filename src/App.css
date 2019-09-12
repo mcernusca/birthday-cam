@@ -40,6 +40,7 @@ video {
 
 .imageFrame > video {
   position: absolute;
+  transform: scaleX(-1);
 }
 
 .imageFrame > video.first {
@@ -53,5 +54,5 @@ video {
 }
 
 .imageFrame > video.self {
-  transform: scaleX(-1);
+  /* transform: scaleX(-1); */
 }
