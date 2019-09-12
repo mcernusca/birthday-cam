@@ -38,15 +38,20 @@ video {
   z-index: 10;
 }
 
-.imageFrame > video.first {
+.imageFrame > video {
   position: absolute;
+}
+
+.imageFrame > video.first {
   left: 148px;
   top: 175px;
 }
 
 .imageFrame > video.second {
-  position: absolute;
   left: 449px;
   top: 175px;
+}
+
+.imageFrame > video.self {
   transform: scaleX(-1);
 }

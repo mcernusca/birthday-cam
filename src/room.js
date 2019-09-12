@@ -138,8 +138,8 @@ export default function Room({ stream }) {
             <Indicator isConnected={isConnected} />
             <div className="imageFrame">
                 <img src={japanFramePng} alt="" />
-                <video className={cn("first", isHost ? "guest" : "host")} />
-                <video className={cn("second", isHost ? "host" : "guest")} />
+                <video className={cn("first", isHost ? "guest" : "host", { "self": !isHost })} />
+                <video className={cn("second", isHost ? "host" : "guest", { "self": isHost })} />
             </div>
         </div>
     )
