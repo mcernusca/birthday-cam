@@ -109,11 +109,11 @@ export default function Room() {
     }, [members, pickNextMember])
 
     React.useEffect(() => {
-        if (stream) {
+        if (stream && connection.current) {
             console.log("~~~setting stream!")
             connection.current.addStream(stream)
         } else {
-            console.log("~~~need a stream!")
+            console.log("~~~need a stream or a connection!")
         }
     }, [isConnected, stream])
 
