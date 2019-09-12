@@ -17,8 +17,17 @@ export default function Room() {
     const room = React.useRef(null);
     const connection = React.useRef(null);
     const [isConnected, setIsConnected] = React.useState(false);
+    const [stream, setStream] = React.useState(null);
 
-    // let currentChat 
+    function getStream() {
+        navigator.mediaDevices.getUserMedia({ audio: false, video: true }).then(stream => {
+            setStream(stream);
+        });
+    }
+
+    React.useEffect(() => {
+        getStream()
+    }, [])
 
     const pickNextMember = React.useCallback(() => {
         console.log("pickNextMember", members)
@@ -100,16 +109,13 @@ export default function Room() {
     }, [members, pickNextMember])
 
     React.useEffect(() => {
-        const gotMedia = (stream) => {
-            console.log("gotMedia", stream)
-            if (connection.current) {
-                connection.current.addStream(stream)
-            } else {
-                console.warn("Don't have an active connection to add stream to")
-            }
+        if (stream) {
+            console.log("~~~setting stream!")
+            connection.current.addStream(stream)
+        } else {
+            console.log("~~~need a stream!")
         }
-        window.navigator.getUserMedia({ video: true, audio: false }, gotMedia, () => { })
-    }, [isConnected])
+    }, [isConnected, stream])
 
     const list = []
     for (var i = 0; i < members.length; i++) {
