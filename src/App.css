@@ -1,7 +1,17 @@
-#outgoing {
-  width: 600px;
-  word-wrap: break-word;
-  white-space: normal;
-  background: pink;
+.indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 20px;
+  height: 20px;
+  border-radius: 20px;
+  background: lightcoral;
 }
 
+.indicator.connected {
+  background: lightgreen;
+}
+
+video {
+  
+}

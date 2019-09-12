@@ -1,10 +1,15 @@
 import React from "react"
 
 import Connection from "./connection"
+import cn from "classname"
 
 const apiKey = 'h6vEZA.9BEKAw:XGAq6Hym9lcxyxha'
 const clientId = 'client-' + Math.random().toString(36).substr(2, 16)
 const isHost = window.location.hash === '#1';
+
+function Indicator({ isConnected }) {
+    return <div className={cn("indicator", { connected: isConnected })} />
+}
 
 export default function Room() {
     const [members, setMembers] = React.useState([])
@@ -27,10 +32,6 @@ export default function Room() {
         return null
     }, [members])
 
-    const handleConnectionChange = React.useCallback((isConnected) => {
-        setIsConnected(isConnected)
-    }, [setIsConnected])
-
     React.useEffect(() => {
         realtime.current = new window.Ably.Realtime({ key: apiKey, clientId: clientId })
         room.current = realtime.current.channels.get('room')
@@ -42,8 +43,9 @@ export default function Room() {
             })
         })
         room.current.presence.subscribe('leave', (member) => {
-            console.log(">>> Left:", member)
+            console.info("<<<ws: left:", member)
             if (connection.current && member.clientId === connection.current.remoteClientId) {
+                connection.current.destroy();
                 connection.current = null
             }
             room.current.presence.get((err, members) => {
@@ -55,24 +57,30 @@ export default function Room() {
 
         room.current.presence.enter()
 
-        if (!isHost) {
-            // Wait to be picked
-            console.log("Waiting to be picked...")
-            room.current.subscribe(`signal/${clientId}`, msg => {
-                console.log("Was picked!", msg)
-                if (!connection.current) {
-                    connection.current = new Connection(clientId, msg.data.user, room.current, false, handleConnectionChange)
+        room.current.subscribe(`signal/${clientId}`, msg => {
+            if (msg && msg.data && msg.data.signal) {
+                if (isHost) {
+                    console.info("<<<ws: got answer from pick:", msg)
+                    connection.current.handleSignal(msg.data.signal)
+                } else {
+                    console.info("<<<ws: was picked:", msg)
+                    if (!connection.current) {
+                        connection.current = new Connection(clientId, msg.data.user, room.current, false)
+                        connection.current.onConnectionChange = setIsConnected
+                    }
+                    connection.current.handleSignal(msg.data.signal)
                 }
-                connection.current.handleSignal(msg.data.signal)
-            })
+            }
+        })
+
+        if (isHost) {
+            console.info("Host ready to pick...")
         } else {
-            room.current.subscribe(`signal/${clientId}`, msg => {
-                connection.current.handleSignal(msg.data.signal)
-            })
+            console.info("Waiting to be picked...")
         }
 
         return () => {
-            room.current.presence.leave();
+            room.current.presence.leave()
         }
     }, [])
 
@@ -82,13 +90,26 @@ export default function Room() {
                 const remoteClientId = pickNextMember();
                 if (remoteClientId) {
                     console.log("Picked", remoteClientId, "to be next!")
-                    connection.current = new Connection(clientId, remoteClientId, room.current, true, handleConnectionChange)
+                    connection.current = new Connection(clientId, remoteClientId, room.current, true)
+                    connection.current.onConnectionChange = setIsConnected
                 } else {
                     console.info("Nobody to pick from...")
                 }
             }
         }
     }, [members, pickNextMember])
+
+    React.useEffect(() => {
+        const gotMedia = (stream) => {
+            console.log("gotMedia", stream)
+            if (connection.current) {
+                connection.current.addStream(stream)
+            } else {
+                console.warn("Don't have an active connection to add stream to")
+            }
+        }
+        navigator.getUserMedia({ video: true, audio: false }, gotMedia, () => { })
+    }, [isConnected])
 
     const list = []
     for (var i = 0; i < members.length; i++) {
@@ -100,12 +121,13 @@ export default function Room() {
 
     return (
         <div>
-            Online ({members.length === 0 ? 0 : members.length - 1}) <br />
-            Connected: {isConnected ? "yes" : "no"} <br />
             Host: {isHost ? "yes" : "no"} <br />
+            Online ({members.length === 0 ? 0 : members.length - 1}) <br />
             <ul>
                 {list}
             </ul>
+            <Indicator isConnected={isConnected} />
+            <video />
         </div>
     )
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import './App.css';
-import SimplePeer from "simple-peer";
 
 import Room from "./room";
 
@@ -73,11 +72,6 @@ function App() {
   return (
     <div className="App">
       <Room />
-      <form>
-        <textarea id="incoming"></textarea>
-        <button type="submit">submit</button>
-      </form>
-      <pre id="outgoing"></pre>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import SimplePeer from "simple-peer";
 const noop = () => { };
 
 export default class Connection {
-    constructor(clientId, remoteClientId, channel, initiator, onConnectionChange) {
+    constructor(clientId, remoteClientId, channel, initiator) {
         console.info(`>>> Connection: Opening to ${remoteClientId}`);
         this._clientId = clientId;
         this.remoteClientId = remoteClientId;
@@ -18,21 +18,32 @@ export default class Connection {
         this._p2pConnection.on('connect', this._onConnect.bind(this));
         this._p2pConnection.on('close', this._onClose.bind(this));
         this._p2pConnection.on('data', this._onData.bind(this));
-        this._onConnectionChange = onConnectionChange || noop;
+        this._p2pConnection.on('stream', this._onStream.bind(this));
+
+        this.onConnectionChange = noop;
     }
 
     handleSignal(signal) {
-        console.log('>>> handle signal', signal);
+        console.log('<<<p2p: handle signal', signal);
         this._p2pConnection.signal(signal);
     }
 
+    addStream(stream) {
+        console.log('>>>p2p: set stream', stream);
+        this._p2pConnection.addStream(stream);
+    }
+
     send(msg) {
-        console.log(">>> send", msg);
+        console.log(">>>p2p: send", msg);
         this._p2pConnection.send(msg);
     }
 
+    destroy() {
+        this._p2pConnection.destroy();
+    }
+
     _onSignal(signal) {
-        console.log('>>> onSignal', signal);
+        console.log('onSignal', this.remoteClientId, signal);
         this._channel.publish(`signal/${this.remoteClientId}`, {
             user: this._clientId,
             signal: signal,
@@ -42,22 +53,36 @@ export default class Connection {
     _onConnect() {
         this.isConnected = true;
         console.info('>>> connected to ' + this.remoteClientId);
-        this._onConnectionChange(this.isConnected);
+        this.onConnectionChange(this.isConnected);
     }
 
     _onClose() {
-        console.info(`>>> connection to ${this.remoteClientId} closed`);
+        console.info(`<<<p2p: connection to ${this.remoteClientId} closed`);
         this.isConnected = false;
-        this._onConnectionChange(this.isConnected);
+        this.onConnectionChange(this.isConnected);
     }
 
     _onData(data) {
         // TODO
         // receiveMessage(this.remoteClientId, data)
-        console.info('>>> data: ' + data)
+        console.info('<<<p2p: data: ' + data)
+    }
+
+    _onStream(stream) {
+        console.info('<<<p2p: stream: ' + stream)
+        // got remote video stream, now let's show it in a video tag
+        var video = document.querySelector('video')
+
+        if ('srcObject' in video) {
+            video.srcObject = stream
+        } else {
+            video.src = window.URL.createObjectURL(stream) // for older browsers
+        }
+
+        video.play()
     }
 
     _onError(error) {
-        console.info(`an error occurred ${error.toString()}`);
+        console.warn(`p2p: an error occurred ${error.toString()}`);
     }
 }
