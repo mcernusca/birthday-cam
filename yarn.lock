@@ -2505,6 +2505,11 @@ caniuse-lite@^1.0.30000980, caniuse-lite@^1.0.30000981, caniuse-lite@^1.0.300009
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30000989.tgz#b9193e293ccf7e4426c5245134b8f2a56c0ac4b9"
   integrity sha512-vrMcvSuMz16YY6GSVZ0dWDTJP8jqk3iFQ/Aq5iqblPwxSVVZI+zxDyTX0VPqtQsDnfdrBDcsmhgTEOh5R8Lbpw==
 
+canvas-object-fit@^0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/canvas-object-fit/-/canvas-object-fit-0.8.1.tgz#ff12656650fd565f3c1cc5ffb18c47dc0701e0dd"
+  integrity sha512-oQOPzPuGhx4T1n4V31hwI9msdbqN4op+rn9A7D/583xA2edrB5vEqXnnp7Woc6EXRUGy/H7tE52gS7nBy5HwDQ==
+
 capture-exit@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/capture-exit/-/capture-exit-2.0.0.tgz#fb953bfaebeb781f62898239dabb426d08a509a4"

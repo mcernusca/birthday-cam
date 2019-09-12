@@ -2,6 +2,7 @@ import React from "react"
 
 import Connection from "./connection"
 import cn from "classname"
+import { captureImageFromVideo } from './canvasObjectFit';
 
 import japanFramePng from "./images/japan.png"
 
@@ -19,6 +20,11 @@ export default function Room({ stream }) {
     const room = React.useRef(null);
     const connection = React.useRef(null);
     const [isConnected, setIsConnected] = React.useState(false);
+
+    const imageFrameRef = React.useRef(null);
+    const firstVideoRef = React.useRef(null);
+    const secondVideoRef = React.useRef(null);
+    const downloadLinkRef = React.useRef(null);
 
     React.useEffect(() => {
         if (stream) {
@@ -124,23 +130,56 @@ export default function Room({ stream }) {
     for (var i = 0; i < members.length; i++) {
         var m = members[i]
         if (m.clientId !== clientId) {
-            list.push(<li key={m.clientId}><small>{m.clientId}</small></li>);
+            list.push(<tr key={m.clientId}><td>{m.clientId}</td></tr>);
         }
     }
 
+    const takePhoto = (e) => {
+        // e.preventDefault();
+        // var canvas = document.createElement('canvas');
+        // canvas.height = 612;
+        // canvas.width = 612;
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+
+        // var ox = canvas.width / 2;
+        // var oy = canvas.height / 2;
+        // ctx.font = "42px serif";
+        // ctx.textAlign = "center";
+        // ctx.textBaseline = "middle";
+        // ctx.fillStyle = "#800";
+        // ctx.fillRect(ox / 2, oy / 2, ox, oy);
+        ctx.save();
+        ctx.translate(120, 0);
+        ctx.scale(-1, 1);
+        captureImageFromVideo(ctx, firstVideoRef.current, -148, 175, 120, 120, { objectFit: 'cover' });
+        captureImageFromVideo(ctx, secondVideoRef.current, -449, 175, 120, 120, { objectFit: 'cover' });
+        ctx.restore();
+        ctx.drawImage(imageFrameRef.current, 0, 0, 612, 612)
+
+        var image = canvas.toDataURL("image/jpg");
+        downloadLinkRef.current.href = image;
+    }
+
     return (
-        <div>
-            Host: {isHost ? "yes" : "no"} <br />
-            Online ({members.length === 0 ? 0 : members.length - 1}) <br />
-            <ul>
-                {list}
-            </ul>
-            <Indicator isConnected={isConnected} />
-            <div className="imageFrame">
-                <img src={japanFramePng} alt="" />
-                <video className={cn("first", isHost ? "guest" : "host", { "self": !isHost })} />
-                <video className={cn("second", isHost ? "host" : "guest", { "self": isHost })} />
+        <div className="room-wrapper">
+            <div className="debug">
+                <table>
+                    <tr><td>Host: {isHost ? "yes" : "no"}</td></tr>
+                    <tr><td>Online ({members.length === 0 ? 0 : members.length - 1})</td></tr>
+                    {list}
+                </table>
             </div>
+            <Indicator isConnected={isConnected} />
+
+            <div className="imageFrame" >
+                <a download="birthday-cam.jpg" className="download-btn" href="" onClick={takePhoto} ref={downloadLinkRef}>Take Photo</a>
+                <img src={japanFramePng} alt="" ref={imageFrameRef} />
+                <video className={cn("first", isHost ? "guest" : "host", { "self": !isHost })} ref={firstVideoRef} />
+                <video className={cn("second", isHost ? "host" : "guest", { "self": isHost })} ref={secondVideoRef} />
+            </div>
+
+            <canvas id="canvas" width={612} height={612} />
         </div>
     )
 }
