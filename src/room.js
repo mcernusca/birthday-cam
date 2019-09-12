@@ -3,6 +3,8 @@ import React from "react"
 import Connection from "./connection"
 import cn from "classname"
 
+import japanFramePng from "./images/japan.png"
+
 const apiKey = 'h6vEZA.9BEKAw:XGAq6Hym9lcxyxha'
 const clientId = 'client-' + Math.random().toString(36).substr(2, 16)
 const isHost = window.location.hash === '#1';
@@ -29,6 +31,18 @@ export default function Room() {
         getStream()
     }, [])
 
+    React.useEffect(() => {
+        if (stream) {
+            var video = document.querySelector('video.self')
+            if ('srcObject' in video) {
+                video.srcObject = stream
+            } else {
+                video.src = window.URL.createObjectURL(stream) // for older browsers
+            }
+            video.play()
+        }
+    }, [stream])
+
     const pickNextMember = React.useCallback(() => {
         console.log("pickNextMember", members)
 
@@ -42,7 +56,7 @@ export default function Room() {
     }, [members])
 
     React.useEffect(() => {
-        realtime.current = new window.Ably.Realtime({ key: apiKey, clientId: clientId })
+        realtime.current = new window.Ably.Realtime({ key: apiKey, clientId: clientId, closeOnUnload: true })
         room.current = realtime.current.channels.get('room')
         room.current.presence.subscribe('enter', () => {
             room.current.presence.get((err, members) => {
@@ -133,7 +147,11 @@ export default function Room() {
                 {list}
             </ul>
             <Indicator isConnected={isConnected} />
-            <video />
+            <div className="imageFrame">
+                <img src={japanFramePng} alt="" />
+                <video className="remote" />
+                <video className="self" />
+            </div>
         </div>
     )
 }
