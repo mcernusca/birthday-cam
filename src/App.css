@@ -42,9 +42,9 @@
 .download-btn {
   position: absolute;
   bottom: 20px;
-  left: 20px;
-  color: white;
-  background: violet;
+  right: 20px;
+  color: #0d1725;
+  background: #ffc400;
   padding: 12px 20px;
   width: 100px;
   text-align: center;
@@ -52,5 +52,5 @@
   border-radius: 20px;
   font-weight: 600;
   z-index: 11;
-  box-shadow: -1px 0 5px rgba(0, 0, 0, 0.12);
+  box-shadow: -1px 0 5px rgba(0, 0, 0, 0.5);
 }

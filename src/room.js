@@ -336,7 +336,7 @@ export default function Room({stream}) {
                 onClick={downloadPhoto}
                 ref={downloadLinkRef}
               >
-                Download Photo
+                &#8595; Download
               </a>
             </>
           )}
