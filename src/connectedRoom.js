@@ -22,6 +22,7 @@ export default function ConnectedRoom({stream}) {
   const [step, setStep] = React.useState(0)
   const [members, setMembers] = React.useState([])
   const [showDebug, setShowDebug] = React.useState(false)
+  const [guestStream, setGuestStream] = React.useState(null)
   const realtimeRef = React.useRef(null)
   const roomRef = React.useRef(null)
   const connection = React.useRef(null)
@@ -79,7 +80,7 @@ export default function ConnectedRoom({stream}) {
       clientId: CLIENT_ID,
       closeOnUnload: true
     })
-    roomRef.current = realtimeRef.current.channels.get('room')
+    roomRef.current = realtimeRef.current.channels.get('room2')
     roomRef.current.presence.subscribe('enter', () => {
       roomRef.current.presence.get((err, members) => {
         if (!err) {
@@ -109,10 +110,13 @@ export default function ConnectedRoom({stream}) {
       if (msg && msg.data && msg.data.signal) {
         if (IS_HOST) {
           console.info('<<<ws: got answer from pick:', msg)
+          console.log('======HANDLING SIGNAL HOST======')
           connection.current.handleSignal(msg.data.signal)
+          connection.current.onGuestStreamChange = setGuestStream
         } else {
           console.info('<<<ws: was picked:', msg)
           if (!connection.current) {
+            console.log('======CREATING NEW CONNECTION======')
             connection.current = new Connection(
               CLIENT_ID,
               msg.data.user,
@@ -123,7 +127,9 @@ export default function ConnectedRoom({stream}) {
             // Handled in room and delegated back up because it needed
             // to tap into this event..
             // connection.current.onData = handleData
+            connection.current.onGuestStreamChange = setGuestStream
           }
+          console.log('======HANDLING SIGNAL GUEST======')
           connection.current.handleSignal(msg.data.signal)
         }
       }
@@ -169,6 +175,7 @@ export default function ConnectedRoom({stream}) {
   React.useEffect(() => {
     // When member list changes pick a new connection
     if (!isDownloadStep) {
+      console.log('=============HERE=============')
       hostPickNewMember()
     }
   }, [hostPickNewMember])
@@ -283,6 +290,7 @@ export default function ConnectedRoom({stream}) {
           step={step}
           setStep={setStep}
           stream={stream}
+          guestStream={guestStream}
           isHost={IS_HOST}
           connection={connection.current}
           handleConnectionData={handleData}

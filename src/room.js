@@ -23,6 +23,7 @@ export default function Room({
   handleConnectionData,
   isConnected,
   stream,
+  guestStream,
   signalGuestToAdvance,
   signalGuestWeAreDone,
   resetHost,
@@ -115,7 +116,7 @@ export default function Room({
   // Hook up stream to self view
   React.useEffect(() => {
     if (stream) {
-      var video = document.querySelector('video.host')
+      const video = document.querySelector('video.host')
       if (video) {
         if ('srcObject' in video) {
           video.srcObject = stream
@@ -128,6 +129,24 @@ export default function Room({
       console.warn('Missing video.host element')
     }
   }, [stream])
+
+  React.useEffect(() => {
+    if (guestStream) {
+      const video = document.querySelector('video.guest')
+      if (video) {
+        if ('srcObject' in video) {
+          video.srcObject = guestStream
+        } else {
+          video.src = window.URL.createObjectURL(guestStream)
+        }
+        video.play()
+      } else {
+        console.warn('Missing video.guest element')
+      }
+    } else {
+      console.warn('Missing video guest stream', guestStream)
+    }
+  }, [guestStream])
 
   const downloadPhoto = () => {
     const canvas = document.getElementById('canvas')
@@ -176,7 +195,7 @@ export default function Room({
       }
     }
   }, [connection, handleConnectionData, handleData])
-
+  console.log('======RENDER=====')
   return (
     <>
       <div className="room-wrapper">

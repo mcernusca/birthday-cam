@@ -11,7 +11,7 @@ export default class Connection {
     this._channel = channel
     this._p2pConnection = new SimplePeer({
       initiator: initiator,
-      trickle: true
+      trickle: false
     })
     this._p2pConnection.on('signal', this._onSignal.bind(this))
     this._p2pConnection.on('error', this._onError.bind(this))
@@ -20,6 +20,7 @@ export default class Connection {
     this._p2pConnection.on('data', this._onData.bind(this))
     this._p2pConnection.on('stream', this._onStream.bind(this))
 
+    this.onGuestStreamChange = noop
     this.onConnectionChange = noop
     this.onData = noop
   }
@@ -79,21 +80,8 @@ export default class Connection {
   }
 
   _onStream(stream) {
-    console.info('<<<p2p: stream: ' + stream)
-    // got remote video stream, now let's show it in a video tag
-    var video = document.querySelector('video.guest')
-    if (!video) {
-      console.warn('Missing video.guest element')
-      return
-    }
-
-    if ('srcObject' in video) {
-      video.srcObject = stream
-    } else {
-      video.src = window.URL.createObjectURL(stream) // for older browsers
-    }
-
-    video.play()
+    console.info('<<<p2p: got stream: ' + stream)
+    this.onGuestStreamChange(stream)
   }
 
   _onError(error) {
