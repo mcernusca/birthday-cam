@@ -163,6 +163,9 @@ export default function ConnectedRoom({stream}) {
     }
   }, [pickNextMember])
 
+  // TODO
+  // linter warns about missing dependency here
+  // but we don't want this to run when isDownloadStep changes..?
   React.useEffect(() => {
     // When member list changes pick a new connection
     if (!isDownloadStep) {
@@ -264,12 +267,12 @@ export default function ConnectedRoom({stream}) {
             {IS_HOST && <p>Waiting for guests..</p>}
             {!IS_HOST && hostIsOnline && (
               <p>
-                Hector is online! Waiting for turn ({totalMembersWaiting - 1}{' '}
+                Héctor is online! Waiting for turn ({totalMembersWaiting - 1}{' '}
                 ahead of you)..
               </p>
             )}
             {!IS_HOST && !hostIsOnline && (
-              <p>Hector is not online. Waiting for Hector...</p>
+              <p>Héctor is not online. Waiting for Héctor...</p>
             )}
           </WaitingContainer>
         </WaitingWrapper>
