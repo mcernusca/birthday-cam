@@ -168,7 +168,7 @@ export default function ConnectedRoom({stream}) {
     if (!isDownloadStep) {
       hostPickNewMember()
     }
-  }, [hostPickNewMember, isDownloadStep])
+  }, [hostPickNewMember])
 
   React.useEffect(() => {
     if (isConnected) {
@@ -211,6 +211,7 @@ export default function ConnectedRoom({stream}) {
 
   const onReset = () => {
     setStep(0)
+    connection.current = null
     hostPickNewMember()
   }
 
