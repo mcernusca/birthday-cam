@@ -1,14 +1,11 @@
 import React from 'react'
 
-import Connection from './connection'
 import cn from 'classname'
-import queryString from 'query-string'
 import styled from 'styled-components'
 import {useKeyState} from 'use-key-state'
 
-import {captureImageFromVideo} from './utils/canvasObjectFit'
 import useEventCallback from './hooks/useEventCallback'
-import generateClientId from './utils/clientId'
+import {captureImageFromVideo} from './utils/canvasObjectFit'
 
 import Flash from './components/flash'
 import Indicator from './components/indicator'
@@ -16,23 +13,27 @@ import Timer from './components/timer'
 
 import FRAMES from './frames'
 const FRAME_DIM = 612
-const ABLY_API_KEY = 'h6vEZA.9BEKAw:XGAq6Hym9lcxyxha'
-const CLIENT_ID = generateClientId()
-const IS_HOST = 'isHector' in queryString.parse(window.location.search)
 const STEPS = 4
 
-export default function Room({stream}) {
-  const [members, setMembers] = React.useState([])
-  const [showDebug, setShowDebug] = React.useState(false)
-  const realtimeRef = React.useRef(null)
-  const roomRef = React.useRef(null)
-  const connection = React.useRef(null)
-  const [isConnected, setIsConnected] = React.useState(false)
-  const [step, setStep] = React.useState(0)
+export default function Room({
+  step,
+  setStep,
+  isHost,
+  connection,
+  handleConnectionData,
+  isConnected,
+  stream,
+  signalGuestToAdvance,
+  signalGuestWeAreDone,
+  resetHost,
+  totalMembersWaiting
+}) {
   const [flashStep, setFlashStep] = React.useState(0)
+
   const photos = React.useRef([null, null, null, null])
   const frame = FRAMES[step]
-  const {rightKey, slashKey} = useKeyState({rightKey: 'right', slashKey: '/'})
+  const {rightKey} = useKeyState({rightKey: 'right'})
+
   const imageFrameRef = React.useRef(null)
   const firstVideoRef = React.useRef(null)
   const secondVideoRef = React.useRef(null)
@@ -92,43 +93,26 @@ export default function Room({stream}) {
         setTimeout(() => setStep(nextStep), 250)
       }
     },
-    [takePhoto]
+    [takePhoto, setStep]
   )
 
-  const handleData = useEventCallback((key, value) => {
-    if (key === 'next') {
-      goTo(parseInt(value))
-    } else if (key === 'goodbye') {
-      // Disconnect
-      console.log('~~~was requested to leave!')
-      roomRef.current.presence.leave(err => {
-        console.log('~~~left presence set', err)
-      })
-    }
-  })
-
+  // Take photo
   const onTimerComplete = React.useCallback(() => {
-    if (IS_HOST) {
+    if (isHost) {
       const nextStep = step + 1
-      if (connection.current) {
-        connection.current.send('next', nextStep)
-      }
+      signalGuestToAdvance(nextStep)
       goTo(nextStep)
     }
-  }, [goTo, step])
+  }, [goTo, step, isHost, signalGuestToAdvance])
 
+  // Skip past the timer with right key
   React.useEffect(() => {
     if (rightKey.down) {
       onTimerComplete()
     }
   }, [rightKey, onTimerComplete])
 
-  React.useEffect(() => {
-    if (slashKey.down) {
-      setShowDebug(prev => !prev)
-    }
-  }, [slashKey])
-
+  // Hook up stream to self view
   React.useEffect(() => {
     if (stream) {
       var video = document.querySelector('video.host')
@@ -144,137 +128,6 @@ export default function Room({stream}) {
       console.warn('Missing video.host element')
     }
   }, [stream])
-
-  const pickNextMember = React.useCallback(() => {
-    console.log('pickNextMember', members)
-
-    for (var i = 0; i < members.length; i++) {
-      var m = members[i]
-      if (m.clientId !== CLIENT_ID) {
-        return m.clientId
-      }
-    }
-    return null
-  }, [members])
-
-  React.useEffect(() => {
-    realtimeRef.current = new window.Ably.Realtime({
-      key: ABLY_API_KEY,
-      clientId: CLIENT_ID,
-      closeOnUnload: true
-    })
-    roomRef.current = realtimeRef.current.channels.get('room')
-    roomRef.current.presence.subscribe('enter', () => {
-      roomRef.current.presence.get((err, members) => {
-        if (!err) {
-          setMembers(members.sort((a, b) => a.timestamp - b.timestamp))
-        }
-      })
-    })
-    roomRef.current.presence.subscribe('leave', member => {
-      console.info('<<<ws: left:', member)
-      if (
-        connection.current &&
-        member.clientId === connection.current.remoteClientId
-      ) {
-        connection.current.destroy()
-        connection.current = null
-      }
-      roomRef.current.presence.get((err, members) => {
-        if (!err) {
-          setMembers(members)
-        }
-      })
-    })
-
-    roomRef.current.presence.enter(IS_HOST ? 'host' : 'guest')
-
-    roomRef.current.subscribe(`signal/${CLIENT_ID}`, msg => {
-      if (msg && msg.data && msg.data.signal) {
-        if (IS_HOST) {
-          console.info('<<<ws: got answer from pick:', msg)
-          connection.current.handleSignal(msg.data.signal)
-        } else {
-          console.info('<<<ws: was picked:', msg)
-          if (!connection.current) {
-            connection.current = new Connection(
-              CLIENT_ID,
-              msg.data.user,
-              roomRef.current,
-              false
-            )
-            connection.current.onConnectionChange = setIsConnected
-            connection.current.onData = handleData
-          }
-          connection.current.handleSignal(msg.data.signal)
-        }
-      }
-    })
-
-    if (IS_HOST) {
-      console.info('Host ready to pick...')
-    } else {
-      console.info('Waiting to be picked...')
-    }
-
-    return () => {
-      roomRef.current.presence.leave()
-    }
-  }, [handleData])
-
-  React.useEffect(() => {
-    if (IS_HOST) {
-      if (connection.current === null || !connection.current.isConnected) {
-        const remoteClientId = pickNextMember()
-        if (remoteClientId) {
-          console.log('Picked', remoteClientId, 'to be next!')
-          connection.current = new Connection(
-            CLIENT_ID,
-            remoteClientId,
-            roomRef.current,
-            true
-          )
-          connection.current.onConnectionChange = setIsConnected
-        } else {
-          console.info('Nobody to pick from...')
-        }
-      }
-    }
-  }, [members, pickNextMember])
-
-  // Signal to other participant to disconnect
-  React.useEffect(() => {
-    if (IS_HOST && step === 4 && connection.current) {
-      connection.current.send('goodbye', 1)
-      connection.current.destroy()
-      connection.current = null
-    }
-  }, [step])
-
-  React.useEffect(() => {
-    if (isConnected) {
-      if (stream && connection.current) {
-        console.log('~~~setting stream!')
-        connection.current.addStream(stream)
-      } else {
-        console.log('~~~need a stream or a connection!')
-      }
-    }
-  }, [isConnected, stream])
-
-  const list = []
-  for (var i = 0; i < members.length; i++) {
-    var m = members[i]
-    if (m.clientId !== CLIENT_ID) {
-      list.push(
-        <tr key={m.clientId}>
-          <td>
-            {m.clientId} ({m.data})
-          </td>
-        </tr>
-      )
-    }
-  }
 
   const downloadPhoto = () => {
     const canvas = document.getElementById('canvas')
@@ -302,38 +155,42 @@ export default function Room({stream}) {
     }
   }, [isDownloadStep])
 
+  React.useEffect(() => {
+    if (isHost && step === 4) {
+      signalGuestWeAreDone()
+    }
+  }, [isHost, step, signalGuestWeAreDone])
+
+  const handleData = useEventCallback((key, value) => {
+    if (key === 'next') {
+      goTo(parseInt(value))
+    }
+  })
+
+  React.useEffect(() => {
+    if (connection) {
+      connection.onData = (key, value) => {
+        handleData(key, value)
+        // Delegate upstream
+        handleConnectionData(key, value)
+      }
+    }
+  }, [connection, handleConnectionData, handleData])
+
   return (
     <>
       <div className="room-wrapper">
-        {showDebug && (
-          <div className="debug">
-            <table>
-              <tbody>
-                <tr>
-                  <td>Host: {IS_HOST ? 'yes' : 'no'}</td>
-                </tr>
-                <tr>
-                  <td>Connected: {isConnected ? 'yes' : 'no'}</td>
-                </tr>
-                <tr>
-                  <td>
-                    Online ({members.length === 0 ? 0 : members.length - 1})
-                  </td>
-                </tr>
-                <tr>
-                  <td>Step: {step}</td>
-                </tr>
-                {list}
-              </tbody>
-            </table>
-          </div>
-        )}
-
         {!isDownloadStep && (
           <>
             <FrameCounter>{step + 1}/4</FrameCounter>
             <Indicator isConnected={isConnected} />
           </>
+        )}
+
+        {isDownloadStep && isHost && (
+          <button className="goAgainButton" onClick={resetHost}>
+            &#8635; Go again? ({totalMembersWaiting} waiting)
+          </button>
         )}
 
         <ImageFrame dim={FRAME_DIM}>
@@ -346,15 +203,15 @@ export default function Room({stream}) {
                 ref={imageFrameRef}
               />
               <video
-                className={cn('first', IS_HOST ? 'guest' : 'host', {
-                  self: !IS_HOST
+                className={cn('first', isHost ? 'guest' : 'host', {
+                  self: !isHost
                 })}
                 ref={firstVideoRef}
                 style={frame.first}
               />
               <video
-                className={cn('second', IS_HOST ? 'host' : 'guest', {
-                  self: IS_HOST
+                className={cn('second', isHost ? 'host' : 'guest', {
+                  self: isHost
                 })}
                 ref={secondVideoRef}
                 style={frame.second}
@@ -446,8 +303,8 @@ const FrameCounter = styled.div`
   left: 20px;
   background: white;
   border-radius: 40px;
-  font-size: 22px;
-  padding: 9px 20px;
+  font-size: 18px;
+  padding: 5px 10px;
   font-weight: 800;
   color: #6955b8;
 `

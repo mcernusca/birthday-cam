@@ -4,6 +4,7 @@
   min-width: 650px;
   min-height: 650px;
   display: flex;
+  flex-flow: column nowrap;
   align-items: center;
   justify-content: center;
 }
@@ -57,4 +58,42 @@
   border-radius: 20px;
   font-weight: 600;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes spinner-grow {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.spinner-grow {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  vertical-align: text-bottom;
+  background-color: white;
+  border-radius: 50%;
+  opacity: 0;
+  animation: spinner-grow 0.75s linear infinite;
+}
+
+.goAgainButton {
+  padding: 0 20px;
+  height: 40px;
+  line-height: 40px;
+  color: #fff;
+  background: #38cd8b;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 20px;
+  border: 0;
+  margin-bottom: 20px;
+  cursor: pointer;
+  outline: none;
 }
