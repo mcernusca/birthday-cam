@@ -1,7 +1,10 @@
 import React from 'react'
 import styled from 'styled-components'
 
-export default function Flash() {
+export default function Flash({shouldFire}) {
+  if (!shouldFire) {
+    return null
+  }
   return <FullScreenFlash />
 }
 

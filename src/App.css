@@ -41,16 +41,20 @@
 
 .download-btn {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
+  bottom: 286px;
+  right: 236px;
+
+  padding: 0 20px;
+  width: 100px;
+  height: 40px;
+  line-height: 40px;
+  z-index: 11;
+
   color: #0d1725;
   background: #ffc400;
-  padding: 12px 20px;
-  width: 100px;
   text-align: center;
   text-decoration: none;
   border-radius: 20px;
   font-weight: 600;
-  z-index: 11;
-  box-shadow: -1px 0 5px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
 }

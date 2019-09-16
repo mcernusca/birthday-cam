@@ -34,9 +34,14 @@ export default class Connection {
     this._p2pConnection.addStream(stream)
   }
 
-  send(msg) {
+  send(key, value) {
+    const msg = `${key}:${value}`
     console.log('>>>p2p: send', msg)
-    this._p2pConnection.send(msg)
+    if (this._p2pConnection) {
+      this._p2pConnection.send(msg)
+    } else {
+      console.warn('No active connection - dropped message', msg)
+    }
   }
 
   destroy() {
@@ -64,10 +69,13 @@ export default class Connection {
   }
 
   _onData(data) {
-    // TODO
-    // receiveMessage(this.remoteClientId, data)
     console.info('<<<p2p: data: ' + data)
-    this.onData(data)
+    const dataParts = String(data).split(':')
+    if (dataParts.length === 2) {
+      this.onData(dataParts[0], dataParts[1])
+    } else {
+      console.warn('Unexpected data format:', data)
+    }
   }
 
   _onStream(stream) {
