@@ -6,10 +6,14 @@ import {useKeyState} from 'use-key-state'
 
 import useEventCallback from './hooks/useEventCallback'
 import {captureImageFromVideo} from './utils/canvasObjectFit'
+import useAudio, {Play} from './hooks/useAudio'
 
 import Flash from './components/flash'
 import Indicator from './components/indicator'
 import Timer from './components/timer'
+
+import flashWav from './sounds/flash.wav'
+import finishedWav from './sounds/finished.wav'
 
 import FRAMES from './frames'
 const FRAME_DIM = 612
@@ -30,6 +34,8 @@ export default function Room({
   totalMembersWaiting
 }) {
   const [flashStep, setFlashStep] = React.useState(0)
+  const flashAudio = useAudio(flashWav)
+  const finishedAudio = useAudio(finishedWav)
 
   const photos = React.useRef([null, null, null, null])
   const frame = FRAMES[step]
@@ -113,6 +119,12 @@ export default function Room({
     }
   }, [rightKey, onTimerComplete])
 
+  React.useEffect(() => {
+    if (flashStep) {
+      Play(flashAudio, 0.8)
+    }
+  }, [flashStep, flashAudio])
+
   // Hook up stream to self view
   React.useEffect(() => {
     if (stream) {
@@ -171,8 +183,9 @@ export default function Room({
   React.useLayoutEffect(() => {
     if (isDownloadStep) {
       downloadPhoto()
+      Play(finishedAudio, 0.2)
     }
-  }, [isDownloadStep])
+  }, [isDownloadStep, finishedAudio])
 
   React.useEffect(() => {
     if (isHost && step === 4) {
@@ -195,7 +208,7 @@ export default function Room({
       }
     }
   }, [connection, handleConnectionData, handleData])
-  console.log('======RENDER=====')
+
   return (
     <>
       <div className="room-wrapper">

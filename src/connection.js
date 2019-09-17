@@ -26,18 +26,18 @@ export default class Connection {
   }
 
   handleSignal(signal) {
-    console.log('<<<p2p: handle signal', signal)
+    console.info('<<<p2p: handle signal', signal)
     this._p2pConnection.signal(signal)
   }
 
   addStream(stream) {
-    console.log('>>>p2p: set stream', stream)
+    console.info('>>>p2p: set stream', stream)
     this._p2pConnection.addStream(stream)
   }
 
   send(key, value) {
     const msg = `${key}:${value}`
-    console.log('>>>p2p: send', msg)
+    console.info('>>>p2p: send', msg)
     if (this._p2pConnection) {
       this._p2pConnection.send(msg)
     } else {
@@ -46,11 +46,12 @@ export default class Connection {
   }
 
   destroy() {
+    console.info('>>>p2p: destroying connection')
     this._p2pConnection.destroy()
   }
 
   _onSignal(signal) {
-    console.log('onSignal', this.remoteClientId, signal)
+    console.info('<<<p2p: onSignal', this.remoteClientId, signal)
     this._channel.publish(`signal/${this.remoteClientId}`, {
       user: this._clientId,
       signal: signal
@@ -59,7 +60,7 @@ export default class Connection {
 
   _onConnect() {
     this.isConnected = true
-    console.info('>>> connected to ' + this.remoteClientId)
+    console.info('<<<p2p: connected to ' + this.remoteClientId)
     this.onConnectionChange(this.isConnected)
   }
 
@@ -75,7 +76,7 @@ export default class Connection {
     if (dataParts.length === 2) {
       this.onData(dataParts[0], dataParts[1])
     } else {
-      console.warn('Unexpected data format:', data)
+      console.warn('~~~p2p: Unexpected data format:', data)
     }
   }
 
@@ -85,6 +86,6 @@ export default class Connection {
   }
 
   _onError(error) {
-    console.warn(`p2p: an error occurred ${error.toString()}`)
+    console.warn(`~~~p2p: an error occurred ${error.toString()}`)
   }
 }
