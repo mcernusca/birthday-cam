@@ -233,6 +233,7 @@ export default function Room({
                 src={frame.background}
                 alt=""
                 ref={imageFrameRef}
+                key={'image-' + step}
               />
               <video
                 className={cn('first', isHost ? 'guest' : 'host', {

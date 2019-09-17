@@ -285,7 +285,7 @@ export default function ConnectedRoom({stream}) {
     if (isConnected) {
       Play(helloAudio)
     }
-  }, [isConnected])
+  }, [isConnected, helloAudio])
 
   return (
     <>
