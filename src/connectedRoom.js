@@ -283,7 +283,7 @@ export default function ConnectedRoom({stream}) {
 
   React.useEffect(() => {
     if (isConnected) {
-      Play(helloAudio)
+      Play(helloAudio, 0.8)
     }
   }, [isConnected, helloAudio])
 
