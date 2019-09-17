@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 
-import flashGif from './images/flash.gif'
+import flashJpg from './images/flash.jpg'
 
 export default function GetUserMedia({children}) {
   const [stream, setStream] = React.useState(null)
@@ -60,7 +60,7 @@ const BackgroundWrapper = styled.div`
   position: absolute;
   height: 100vh;
   width: 100vw;
-  background: url(${flashGif});
+  background: url(${flashJpg});
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -70,8 +70,8 @@ const BackgroundWrapper = styled.div`
 const Wrapper = styled.div`
   position: absolute;
 
-  height: 100vh;
-  width: 100vw;
+  height: calc(100vh - 40px);
+  width: calc(100vw - 40px);
 
   display: flex;
   flex-flow: column nowrap;
