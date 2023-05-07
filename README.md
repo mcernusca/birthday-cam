@@ -1,3 +1,5 @@
 # Multiplayer photo booth
 
-See: https://twitter.com/mcernusca/status/1173980312092729344
+https://user-images.githubusercontent.com/31384/236688173-aefd2719-7efd-493b-90e9-3070a8eadf89.mp4
+
+
